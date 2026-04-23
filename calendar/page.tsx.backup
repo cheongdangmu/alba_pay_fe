@@ -1,0 +1,160 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+// 유틸
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const makeTimeSlots = () => {
+  const arr: string[] = [];
+  for (let h = 0; h < 24; h++) {
+    arr.push(`${pad(h)}:00`);
+    arr.push(`${pad(h)}:30`);
+  }
+  return arr;
+};
+
+const makeDates = (start: Date, days: number) =>
+  Array.from({ length: days }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    return `${yyyy}-${mm}-${dd}`;
+  });
+
+type Mode = "select" | "deselect";
+
+export default function TimeGridCalendar() {
+  const timeSlots = useMemo(() => makeTimeSlots(), []);
+  const dates = useMemo(() => makeDates(new Date(), 7), []);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [isDragging, setIsDragging] = useState(false);
+  const [mode, setMode] = useState<Mode>("select");
+
+  const [startCell, setStartCell] = useState<{
+    date: string;
+    row: number;
+  } | null>(null);
+
+  const [currentRow, setCurrentRow] = useState<number | null>(null);
+
+  const keyOf = (date: string, time: string) => `${date}_${time}`;
+  const isSelected = (k: string) => selected.has(k);
+
+  // 👉 시작
+  const handleMouseDown = (date: string, row: number, key: string) => {
+    setIsDragging(true);
+    setStartCell({ date, row });
+    setCurrentRow(row);
+
+    setSelected((prev) => {
+      const next = new Set(prev);
+
+      if (next.has(key)) {
+        setMode("deselect");
+        next.delete(key);
+      } else {
+        setMode("select");
+        next.add(key);
+      }
+
+      return next;
+    });
+  };
+
+  // 👉 드래그 중 (row만 업데이트)
+  const handleMouseEnter = (date: string, row: number) => {
+    if (!isDragging || !startCell) return;
+    if (date !== startCell.date) return; // 같은 날짜만
+
+    setCurrentRow(row);
+  };
+
+  // 👉 ⭐ 범위 기반 선택 핵심
+  useEffect(() => {
+    if (!isDragging || !startCell || currentRow === null) return;
+
+    const { date, row: startRow } = startCell;
+    const endRow = currentRow;
+
+    // 아래 방향만 허용
+    if (endRow < startRow) return;
+
+    setSelected((prev) => {
+      const next = new Set(prev);
+
+      for (let r = startRow; r <= endRow; r++) {
+        const time = timeSlots[r];
+        const key = `${date}_${time}`;
+
+        if (mode === "select") next.add(key);
+        else next.delete(key);
+      }
+
+      return next;
+    });
+  }, [currentRow, isDragging, startCell, mode, timeSlots]);
+
+  // 👉 드래그 종료
+  useEffect(() => {
+    const up = () => {
+      setIsDragging(false);
+      setStartCell(null);
+      setCurrentRow(null);
+    };
+
+    window.addEventListener("mouseup", up);
+    return () => window.removeEventListener("mouseup", up);
+  }, []);
+
+  return (
+    <div className="overflow-auto select-none">
+      {/* 헤더 */}
+      <div
+        className="grid sticky top-0 bg-white z-10 border-b"
+        style={{ gridTemplateColumns: `80px repeat(${dates.length}, 1fr)` }}
+      >
+        <div className="p-2 border-r text-sm text-gray-500">Time</div>
+        {dates.map((d) => (
+          <div key={d} className="p-2 text-center border-r text-sm font-medium">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* 바디 */}
+      <div>
+        {timeSlots.map((time, rowIndex) => (
+          <div
+            key={time}
+            className="grid border-b"
+            style={{ gridTemplateColumns: `80px repeat(${dates.length}, 1fr)` }}
+          >
+            {/* 시간 */}
+            <div className="p-2 border-r text-xs text-gray-500">{time}</div>
+
+            {/* 셀 */}
+            {dates.map((date) => {
+              const k = keyOf(date, time);
+              const active = isSelected(k);
+
+              return (
+                <div
+                  key={k}
+                  onMouseDown={() => handleMouseDown(date, rowIndex, k)}
+                  onMouseEnter={() => handleMouseEnter(date, rowIndex)}
+                  className={`h-8 border-r cursor-pointer
+                    ${active ? "bg-red-500" : "bg-white hover:bg-gray-100"}
+                  `}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
