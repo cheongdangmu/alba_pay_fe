@@ -6,6 +6,12 @@ import {
   CheckCircle2, Share2, Map as MapIcon, Coffee, Utensils, Star, Info
 } from 'lucide-react';
 
+
+interface RoomData {
+  title: string;
+  collectLocation: boolean;
+}
+
 const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 9); // 09:00 ~ 21:00
 
@@ -25,9 +31,9 @@ const MOCK_RESULTS = {
 
 export default function NullNullApp() {
   const [currentView, setCurrentView] = useState('CREATE'); // CREATE, PARTICIPATE, RESULT
-  const [roomData, setRoomData] = useState(null);
+  const [roomData, setRoomData] = useState<RoomData | null>(null);
 
-  const handleCreateRoom = (data) => {
+  const handleCreateRoom = (data : RoomData) => {
     setRoomData(data);
     setCurrentView('PARTICIPATE');
   };
@@ -65,7 +71,7 @@ export default function NullNullApp() {
   );
 }
 
-function CreateRoomView({ onSubmit }) {
+function CreateRoomView({ onSubmit }: { onSubmit: (data: RoomData) => void }) {
   const [title, setTitle] = useState('');
   const [collectLocation, setCollectLocation] = useState(true);
 
@@ -132,20 +138,20 @@ function CreateRoomView({ onSubmit }) {
   );
 }
 
-function ParticipateView({ roomData, onSubmit }) {
+function ParticipateView({ roomData, onSubmit }: { roomData: RoomData | null; onSubmit: (data: RoomData) => void }) {
   const [selectedBlocks, setSelectedBlocks] = useState(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [dragMode, setDragMode] = useState(true); // true: select (make NULL), false: deselect
 
   // Handle Drag Selection Logic
-  const handleMouseDown = (id) => {
+  const handleMouseDown = (id : string) => {
     setIsDragging(true);
     const isCurrentlySelected = selectedBlocks.has(id);
     setDragMode(!isCurrentlySelected);
     toggleBlock(id, !isCurrentlySelected);
   };
 
-  const handleMouseEnter = (id) => {
+  const handleMouseEnter = (id : string) => {
     if (isDragging) {
       toggleBlock(id, dragMode);
     }
@@ -155,7 +161,7 @@ function ParticipateView({ roomData, onSubmit }) {
     setIsDragging(false);
   };
 
-  const toggleBlock = (id, forceState) => {
+  const toggleBlock = (id: string, forceState: boolean) => {
     setSelectedBlocks(prev => {
       const next = new Set(prev);
       if (forceState) next.add(id);
@@ -242,7 +248,7 @@ function ParticipateView({ roomData, onSubmit }) {
           <span className="font-bold text-rose-500">{selectedBlocks.size}</span>개의 불가 시간 선택됨
         </div>
         <button 
-          onClick={onSubmit}
+          onClick={() => roomData && onSubmit(roomData)}
           className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2"
         >
           저장하고 결과 보기 <ChevronRight className="w-5 h-5" />
@@ -252,7 +258,7 @@ function ParticipateView({ roomData, onSubmit }) {
   );
 }
 
-function ResultView({ roomData }) {
+function ResultView({ roomData }: { roomData: RoomData | null }) {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
       
