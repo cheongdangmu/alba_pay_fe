@@ -102,22 +102,22 @@ function AppShell() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
       {/* Top Navigation */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('CREATE')}>
-            <div className="w-7 h-7 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">N</div>
-            <span className="font-bold text-lg tracking-tight text-slate-800">널널</span>
+        <div className="max-w-3xl mx-auto px-3 h-12 flex items-center justify-between">
+          <div className="flex items-center gap-1.5 cursor-pointer" onClick={() => setCurrentView('CREATE')}>
+            <div className="w-6 h-6 bg-indigo-600 text-white rounded-md flex items-center justify-center font-bold text-sm">N</div>
+            <span className="font-bold text-base tracking-tight text-slate-800">널널</span>
           </div>
-          <div className="flex gap-1 text-xs text-slate-500">
-            <span className={`px-2 ${currentView === 'CREATE' ? 'text-indigo-600 font-semibold' : ''}`}>방 만들기</span>
-            <ChevronRight className="w-3 h-3 opacity-50 self-center" />
-            <span className={`px-2 ${currentView === 'PARTICIPATE' ? 'text-indigo-600 font-semibold' : ''}`}>시간 입력</span>
-            <ChevronRight className="w-3 h-3 opacity-50 self-center" />
-            <span className={`px-2 ${currentView === 'RESULT' ? 'text-indigo-600 font-semibold' : ''}`}>결과</span>
+          <div className="flex items-center gap-0.5 text-[11px] text-slate-500">
+            <span className={`px-1.5 ${currentView === 'CREATE' ? 'text-indigo-600 font-semibold' : ''}`}>방 만들기</span>
+            <ChevronRight className="w-3 h-3 opacity-40" />
+            <span className={`px-1.5 ${currentView === 'PARTICIPATE' ? 'text-indigo-600 font-semibold' : ''}`}>시간 입력</span>
+            <ChevronRight className="w-3 h-3 opacity-40" />
+            <span className={`px-1.5 ${currentView === 'RESULT' ? 'text-indigo-600 font-semibold' : ''}`}>결과</span>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl w-full mx-auto p-4 py-6">
+      <main className="flex-1 max-w-3xl w-full mx-auto p-3 py-4">
         {currentView === 'CREATE' && <CreateRoomView onSubmit={handleCreateRoom} />}
         {currentView === 'PARTICIPATE' && <ParticipateView roomData={roomData} onSubmit={handleSubmitBlocks} />}
         {currentView === 'RESULT' && <ResultView roomData={roomData} />}
@@ -235,55 +235,55 @@ function CreateRoomView({ onSubmit }: { onSubmit: (data: RoomData) => void }) {
   const [collectLocation, setCollectLocation] = useState(true);
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <h1 className="text-2xl font-bold mb-6 text-slate-900">새로운 약속 잡기</h1>
-      <div className="space-y-6">
+    <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <h1 className="text-xl font-bold mb-4 text-slate-900">새로운 약속 잡기</h1>
+      <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">약속 이름</label>
+          <label className="block text-xs font-medium text-slate-700 mb-1.5">약속 이름</label>
           <input
             type="text"
             placeholder="예: 5월 동아리 회의"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+            className="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">시작일</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">시작일</label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input type="date" className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 outline-none" defaultValue="2026-05-04" />
+              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input type="date" className="w-full pl-8 pr-2 py-2.5 text-sm rounded-xl border border-slate-300 outline-none" defaultValue="2026-05-04" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">종료일</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">종료일</label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input type="date" className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 outline-none" defaultValue="2026-05-10" />
+              <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input type="date" className="w-full pl-8 pr-2 py-2.5 text-sm rounded-xl border border-slate-300 outline-none" defaultValue="2026-05-10" />
             </div>
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">참여자 수 (선택)</label>
+          <label className="block text-xs font-medium text-slate-700 mb-1.5">참여자 수 (선택)</label>
           <div className="relative">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <input type="number" placeholder="최대 50명" className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 outline-none" />
+            <Users className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <input type="number" placeholder="최대 50명" className="w-full pl-8 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 outline-none" />
           </div>
         </div>
-        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
           <div>
-            <h3 className="font-medium text-slate-900">중간지점 추천받기</h3>
-            <p className="text-sm text-slate-500">출발지 기반으로 모이기 좋은 장소를 추천합니다.</p>
+            <h3 className="text-sm font-medium text-slate-900">중간지점 추천받기</h3>
+            <p className="text-xs text-slate-500 mt-0.5">출발지 기반으로 모이기 좋은 장소 추천</p>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex items-center cursor-pointer ml-3 flex-shrink-0">
             <input type="checkbox" className="sr-only peer" checked={collectLocation} onChange={() => setCollectLocation(!collectLocation)} />
             <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
           </label>
         </div>
         <button
           onClick={() => onSubmit({ title: title || '새로운 약속', collectLocation })}
-          className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
+          className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]"
         >
           방 만들기
         </button>
@@ -341,82 +341,94 @@ function ParticipateView({ roomData, onSubmit }: { roomData: RoomData | null; on
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 flex justify-between items-start">
+      {/* 방 정보 헤더 */}
+      <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-3 flex justify-between items-center">
         <div>
-          <span className="inline-block px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-md mb-2">COLLECTING</span>
-          <h2 className="text-2xl font-bold text-slate-900">{roomData?.title}</h2>
-          <p className="text-slate-500 flex items-center gap-1 mt-1 text-sm"><Clock className="w-4 h-4" /> 마감: 2일 남음</p>
+          <span className="inline-block px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-md mb-1">COLLECTING</span>
+          <h2 className="text-base font-bold text-slate-900 leading-tight">{roomData?.title}</h2>
+          <p className="text-slate-500 flex items-center gap-1 mt-0.5 text-xs"><Clock className="w-3 h-3" /> 마감: 2일 남음</p>
         </div>
-        <button className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors">
-          <Share2 className="w-5 h-5" />
+        <button className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors flex-shrink-0">
+          <Share2 className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
-        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <Info className="w-5 h-5 text-indigo-500" />
-          <span className="text-rose-500">안되는 시간</span>을 드래그하여 칠해주세요
+      {/* 달력 */}
+      <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-3">
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-1.5">
+          <Info className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+          <span className="text-rose-500">안되는 시간</span>을 드래그해서 칠해주세요
         </h3>
+
+        {/* 달력 그리드 — overflow 없이 화면에 꽉 참 */}
         <div
-          className="overflow-x-auto pb-4 select-none touch-none"
+          className="select-none touch-none w-full"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="min-w-[600px]">
-            <div className="grid grid-cols-8 gap-1 mb-2">
-              <div className="text-center text-xs font-medium text-slate-400">시간</div>
-              {DAYS.map(day => (
-                <div key={day} className="text-center font-semibold text-slate-700 bg-slate-50 py-2 rounded-lg">{day}</div>
-              ))}
-            </div>
-            {HOURS.map(hour => (
-              <div key={hour} className="grid grid-cols-8 gap-1 mb-1">
-                <div className="text-right pr-2 text-xs font-medium text-slate-400 flex items-center justify-end -translate-y-3">
-                  {hour}:00
-                </div>
-                {DAYS.map(day => {
-                  const id = `${day}-${hour}`;
-                  const isSelected = selectedBlocks.has(id);
-                  return (
-                    <div
-                      key={id}
-                      data-id={id}
-                      onMouseDown={() => handleMouseDown(id)}
-                      onMouseEnter={() => handleMouseEnter(id)}
-                      className={`h-10 rounded-md cursor-crosshair transition-colors duration-100 border border-slate-100
-                        ${isSelected ? 'bg-rose-400 border-rose-500 shadow-inner' : 'bg-indigo-50 hover:bg-indigo-100'}`}
-                    />
-                  );
-                })}
-              </div>
+          {/* 요일 헤더 */}
+          <div className="flex gap-px mb-1">
+            {/* 시간 라벨 열 너비 고정 */}
+            <div className="w-7 flex-shrink-0" />
+            {DAYS.map(day => (
+              <div key={day} className="flex-1 text-center text-[11px] font-semibold text-slate-600 bg-slate-50 py-1.5 rounded-md">{day}</div>
             ))}
           </div>
+
+          {/* 시간 행들 */}
+          {HOURS.map(hour => (
+            <div key={hour} className="flex gap-px mb-px">
+              {/* 시간 라벨 */}
+              <div className="w-7 flex-shrink-0 text-right pr-1 text-[10px] text-slate-400 flex items-center justify-end leading-none">
+                {hour}
+              </div>
+              {/* 요일별 블록 */}
+              {DAYS.map(day => {
+                const id = `${day}-${hour}`;
+                const isSelected = selectedBlocks.has(id);
+                return (
+                  <div
+                    key={id}
+                    data-id={id}
+                    onMouseDown={() => handleMouseDown(id)}
+                    onMouseEnter={() => handleMouseEnter(id)}
+                    className={`flex-1 h-8 rounded-sm cursor-crosshair transition-colors duration-75
+                      ${isSelected
+                        ? 'bg-rose-400 border border-rose-500'
+                        : 'bg-indigo-50 border border-slate-100 hover:bg-indigo-100'}`}
+                  />
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
+      {/* 출발지 */}
       {roomData?.collectLocation && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
-          <h3 className="font-bold text-lg mb-4">어디서 출발하시나요?</h3>
+        <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-200 mb-3">
+          <h3 className="text-sm font-bold mb-2">어디서 출발하시나요?</h3>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input type="text" placeholder="출발지 검색 (예: 강남역)" className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 outline-none" />
+              <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input type="text" placeholder="출발지 검색 (예: 강남역)" className="w-full pl-8 pr-3 py-2 text-sm rounded-xl border border-slate-300 outline-none" />
             </div>
-            <button className="px-6 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-xl transition-colors">확인</button>
+            <button className="px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-xl transition-colors">확인</button>
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between sticky bottom-4 bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-xl">
-        <div className="text-sm text-slate-600">
-          <span className="font-bold text-rose-500">{selectedBlocks.size}</span>개의 불가 시간 선택됨
+      {/* 하단 저장 바 */}
+      <div className="flex items-center justify-between sticky bottom-3 bg-white/90 backdrop-blur-md px-3 py-2.5 rounded-2xl border border-slate-200 shadow-xl">
+        <div className="text-xs text-slate-600">
+          <span className="font-bold text-rose-500">{selectedBlocks.size}</span>개 불가 선택
         </div>
         <button
           onClick={onSubmit}
-          className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-2"
+          className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all flex items-center gap-1.5"
         >
-          저장하고 결과 보기 <ChevronRight className="w-5 h-5" />
+          저장하고 결과 보기 <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -503,38 +515,38 @@ function ResultView({ roomData }: { roomData: RoomData | null }) {
         }}
       />
 
-      <div className="bg-indigo-600 text-white p-6 rounded-2xl shadow-md flex items-center justify-between">
+      <div className="bg-indigo-600 text-white p-4 rounded-2xl shadow-md flex items-center justify-between">
         <div>
-          <span className="inline-block px-2 py-1 bg-white/20 text-white text-xs font-bold rounded-md mb-2">READY</span>
-          <h2 className="text-2xl font-bold">{roomData?.title || '5월 동아리 회의'}</h2>
-          <p className="text-indigo-100 flex items-center gap-2 mt-1"><Users className="w-4 h-4" /> 참여자 14/14명 완료</p>
+          <span className="inline-block px-2 py-0.5 bg-white/20 text-white text-[10px] font-bold rounded-md mb-1">READY</span>
+          <h2 className="text-lg font-bold leading-tight">{roomData?.title || '5월 동아리 회의'}</h2>
+          <p className="text-indigo-100 flex items-center gap-1.5 mt-1 text-xs"><Users className="w-3.5 h-3.5" /> 참여자 14/14명 완료</p>
         </div>
-        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-          <CheckCircle2 className="w-8 h-8 text-white" />
+        <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+          <CheckCircle2 className="w-6 h-6 text-white" />
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-        <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-          <Clock className="w-6 h-6 text-indigo-500" /> 모두가 만날 수 있는 시간
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <h3 className="font-bold text-base mb-3 flex items-center gap-1.5">
+          <Clock className="w-5 h-5 text-indigo-500" /> 모두가 만날 수 있는 시간
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {MOCK_RESULTS.topCandidates.map((candidate) => (
-            <div key={candidate.rank} className={`p-4 rounded-xl border-2 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-50
+            <div key={candidate.rank} className={`p-3 rounded-xl border-2 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-50
               ${candidate.rank === 1 ? 'border-indigo-500 bg-indigo-50/30' : 'border-slate-100'}`}>
-              <div className="flex items-center gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold
+              <div className="flex items-center gap-3">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0
                   ${candidate.rank === 1 ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
                   {candidate.rank}
                 </div>
                 <div>
-                  <div className="font-bold text-lg text-slate-900">{candidate.date} {candidate.time}</div>
-                  <div className="text-sm text-slate-500">참석 가능: <span className="font-semibold text-indigo-600">{candidate.attendeeCount}</span>/{candidate.total}명</div>
+                  <div className="font-bold text-sm text-slate-900">{candidate.date} {candidate.time}</div>
+                  <div className="text-xs text-slate-500">참석: <span className="font-semibold text-indigo-600">{candidate.attendeeCount}</span>/{candidate.total}명</div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xs text-slate-400 mb-1">매칭 점수</div>
-                <div className="font-mono font-bold text-indigo-600">{(candidate.score * 100).toFixed(0)}%</div>
+              <div className="text-right flex-shrink-0">
+                <div className="text-[10px] text-slate-400">매칭</div>
+                <div className="font-mono font-bold text-sm text-indigo-600">{(candidate.score * 100).toFixed(0)}%</div>
               </div>
             </div>
           ))}
@@ -542,58 +554,56 @@ function ResultView({ roomData }: { roomData: RoomData | null }) {
       </div>
 
       {roomData?.collectLocation !== false && (
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-xl flex items-center gap-2">
-              <MapPin className="w-6 h-6 text-indigo-500" /> 중간지점 추천 장소
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold text-base flex items-center gap-1.5">
+              <MapPin className="w-5 h-5 text-indigo-500" /> 중간지점 추천 장소
             </h3>
-            <span className="text-sm font-medium bg-slate-100 text-slate-600 px-3 py-1 rounded-full">기준: {meetingPoint.label}</span>
+            <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2 py-1 rounded-full truncate max-w-[100px]">{meetingPoint.label}</span>
           </div>
-          <div className="w-full max-w-md mb-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="주소를 입력하세요"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && searchAddress()}
-              />
-              <button onClick={searchAddress} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">검색</button>
-            </div>
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="주소를 입력하세요"
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyPress={(e) => e.key === 'Enter' && searchAddress()}
+            />
+            <button onClick={searchAddress} className="px-3 py-2 bg-blue-500 text-white text-sm rounded-xl hover:bg-blue-600">검색</button>
           </div>
-          <div id="map" className="h-48 bg-slate-100 rounded-xl mb-4 border border-slate-200 overflow-hidden" />
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div id="map" className="h-40 bg-slate-100 rounded-xl mb-3 border border-slate-200 overflow-hidden" />
+          <div className="grid grid-cols-1 gap-2">
             {MOCK_RESULTS.places.map((place) => (
-              <div key={place.id} className="p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-2">
-                    {place.category === 'cafe' ? <Coffee className="w-4 h-4 text-orange-500" /> : <Utensils className="w-4 h-4 text-orange-500" />}
-                    <span className="font-bold text-slate-900">{place.name}</span>
+              <div key={place.id} className="p-3 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  {place.category === 'cafe' ? <Coffee className="w-4 h-4 text-orange-500 flex-shrink-0" /> : <Utensils className="w-4 h-4 text-orange-500 flex-shrink-0" />}
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm text-slate-900 truncate">{place.name}</div>
+                    <div className="flex items-center gap-2 text-xs text-slate-600 mt-0.5">
+                      <div className="flex items-center gap-0.5">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="font-medium">{place.rating}</span>
+                        <span className="text-slate-400">({place.reviews})</span>
+                      </div>
+                      <span className="text-slate-300">·</span>
+                      <span>매칭 {(place.score * 100).toFixed(0)}%</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">{place.distance}</span>
                 </div>
-                <div className="flex items-center gap-3 text-sm text-slate-600">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{place.rating}</span>
-                    <span className="text-slate-400">({place.reviews})</span>
-                  </div>
-                  <div className="w-1 h-1 rounded-full bg-slate-300" />
-                  <div>매칭률 {(place.score * 100).toFixed(0)}%</div>
-                </div>
+                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md flex-shrink-0 ml-2">{place.distance}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="p-3 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div>
-          <h4 className="font-bold text-indigo-900 mb-1">방장님이신가요?</h4>
-          <p className="text-sm text-indigo-700">모두의 의견을 바탕으로 약속을 확정해 주세요.</p>
+          <h4 className="font-bold text-sm text-indigo-900 mb-0.5">방장님이신가요?</h4>
+          <p className="text-xs text-indigo-700">모두의 의견을 바탕으로 약속을 확정해 주세요.</p>
         </div>
-        <button className="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors">
+        <button className="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl transition-colors">
           약속 확정하기
         </button>
       </div>
