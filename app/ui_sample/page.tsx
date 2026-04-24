@@ -1,11 +1,79 @@
 "use client";
-
+import Script from "next/script";
 import React, { useState, useCallback, useRef } from 'react';
 import { 
   Calendar, Clock, MapPin, Users, ChevronRight, 
   CheckCircle2, Share2, Map as MapIcon, Coffee, Utensils, Star, Info
 } from 'lucide-react';
 
+// 카카오 지도 타입 정의
+interface KakaoMap {
+  setCenter: (latlng: KakaoLatLng) => void;
+}
+
+interface KakaoLatLng {
+  getLat: () => number;
+  getLng: () => number;
+}
+
+interface KakaoMarker {
+  setMap: (map: KakaoMap | null) => void;
+}
+
+interface KakaoInfoWindow {
+  open: (map: KakaoMap, marker: KakaoMarker) => void;
+}
+
+interface KakaoGeocoderResult {
+  y: string;
+  x: string;
+  address_name: string;
+  place_name : string;
+}
+
+interface KakaoGeocoderStatus {
+  OK: string;
+}
+
+interface KakaoPlaces {
+  keywordSearch: (
+    keyword: string,
+    callback: (result: KakaoGeocoderResult[], status: string, pagination: unknown) => void,
+    options?: { category_group_code?: string }
+  ) => void;
+}
+
+interface KakaoServices {
+  Geocoder: new () => KakaoGeocoder;
+  Places: new () => KakaoPlaces;
+  Status: KakaoGeocoderStatus;
+}
+
+interface KakaoGeocoder {
+  addressSearch: (
+    address: string,
+    callback: (result: KakaoGeocoderResult[], status: string) => void
+  ) => void;
+}
+
+interface KakaoMaps {
+  load: (callback: () => void) => void;
+  LatLng: new (lat: number, lng: number) => KakaoLatLng;
+  Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
+  Marker: new (options: { map?: KakaoMap; position: KakaoLatLng }) => KakaoMarker;
+  InfoWindow: new (options: { content: string }) => KakaoInfoWindow;
+  services: KakaoServices;
+}
+
+interface KakaoNamespace {
+  maps: KakaoMaps;
+}
+
+declare global {
+  interface Window {
+    kakao: KakaoNamespace;
+  }
+}
 
 interface RoomData {
   title: string;
@@ -161,6 +229,32 @@ function ParticipateView({ roomData, onSubmit }: { roomData: RoomData | null; on
     setIsDragging(false);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault(); // 스크롤 방지
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const id = el?.getAttribute('data-id');
+    if (!id) return;
+
+    setIsDragging(true);
+    const isCurrentlySelected = selectedBlocks.has(id);
+    setDragMode(!isCurrentlySelected);
+    toggleBlock(id, !isCurrentlySelected);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault(); // 스크롤 방지
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const id = el?.getAttribute('data-id');
+    if (id) toggleBlock(id, dragMode);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   const toggleBlock = (id: string, forceState: boolean) => {
     setSelectedBlocks(prev => {
       const next = new Set(prev);
@@ -191,7 +285,11 @@ function ParticipateView({ roomData, onSubmit }: { roomData: RoomData | null; on
         </h3>
         
         {/* Time Grid UI */}
-        <div className="overflow-x-auto pb-4 select-none touch-none">
+        <div className="overflow-x-auto pb-4 select-none touch-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="min-w-[600px]">
             {/* Header: Days */}
             <div className="grid grid-cols-8 gap-1 mb-2">
@@ -213,6 +311,7 @@ function ParticipateView({ roomData, onSubmit }: { roomData: RoomData | null; on
                   return (
                     <div 
                       key={id}
+                      data-id={id}
                       onMouseDown={() => handleMouseDown(id)}
                       onMouseEnter={() => handleMouseEnter(id)}
                       className={`h-10 rounded-md cursor-crosshair transition-colors duration-100 border border-slate-100
@@ -254,14 +353,143 @@ function ParticipateView({ roomData, onSubmit }: { roomData: RoomData | null; on
           저장하고 결과 보기 <ChevronRight className="w-5 h-5" />
         </button>
       </div>
-    </div>
+    </div> 
   );
 }
 
 function ResultView({ roomData }: { roomData: RoomData | null }) {
+  const [address, setAddress] = useState("");
+  const [meetingPoint, setMeetingPoint] = useState(MOCK_RESULTS.meetingPoint);
+  const mapRef = useRef<KakaoMap | null>(null);
+  const markersRef = useRef<KakaoMarker[]>([]);
+
+  const searchAddress = () => {
+    if (!address.trim()) return;
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+
+    // 먼저 주소 검색 시도
+    geocoder.addressSearch(address, (result, status) => {
+      if (status === window.kakao.maps.services.Status.OK) {
+        const coords = new window.kakao.maps.LatLng(parseFloat(result[0].y), parseFloat(result[0].x));
+
+        // 기존 마커 제거
+        markersRef.current.forEach(marker => marker.setMap(null));
+        markersRef.current = [];
+
+        // 지도 중심 이동
+        if (mapRef.current) {
+          mapRef.current.setCenter(coords);
+        }
+
+        setMeetingPoint({
+          label: address,
+          lat: parseFloat(result[0].y),
+          lng: parseFloat(result[0].x),
+        });
+
+        // 새 마커 생성
+        if (mapRef.current) {
+          const marker = new window.kakao.maps.Marker({
+            map: mapRef.current,
+            position: coords
+          });
+
+          markersRef.current.push(marker);
+
+          // 인포윈도우 생성
+          const infowindow = new window.kakao.maps.InfoWindow({
+            content: `<div style="width:150px;text-align:center;padding:6px 0;">${address}</div>`
+          });
+          infowindow.open(mapRef.current, marker);
+        }
+      } else {
+        // 주소 검색 실패 시 키워드 검색 시도 (역, 장소 등)
+        searchKeyword();
+      }
+    });
+  };
+
+  const searchKeyword = () => {
+    const places = new window.kakao.maps.services.Places();
+
+    places.keywordSearch(address, (result, status) => {
+      setMeetingPoint({
+        label: result[0].place_name,
+        lat: parseFloat(result[0].y),
+        lng: parseFloat(result[0].x),
+      });
+      if (status === window.kakao.maps.services.Status.OK) {
+        const coords = new window.kakao.maps.LatLng(parseFloat(result[0].y), parseFloat(result[0].x));
+
+        // 기존 마커 제거
+        markersRef.current.forEach(marker => marker.setMap(null));
+        markersRef.current = [];
+
+        // 지도 중심 이동
+        if (mapRef.current) {
+          mapRef.current.setCenter(coords);
+        }
+
+        // 새 마커 생성
+        if (mapRef.current) {
+          const marker = new window.kakao.maps.Marker({
+            map: mapRef.current,
+            position: coords
+          });
+
+          markersRef.current.push(marker);
+          // 인포윈도우 생성
+          const infowindow = new window.kakao.maps.InfoWindow({
+            content: `<div style="width:200px;text-align:center;padding:6px 0;"><strong>${result[0].place_name}</strong><br/>${result[0].address_name}</div>`
+          });
+          infowindow.open(mapRef.current, marker);
+        }
+      } else {
+        alert("주소나 장소를 찾을 수 없습니다.");
+      }
+    });
+  };
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-      
+      <Script
+        src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=c92e2db2ad570ba196da9767ff6af5a7&autoload=false&libraries=services`}
+        strategy="afterInteractive"
+        onLoad={() => {
+          window.kakao.maps.load(() => {
+            const container = document.getElementById('map');
+            if (container) {
+              // 일단 기본 위치로 지도 초기화
+              const defaultCenter = new window.kakao.maps.LatLng(37.566, 126.978);
+              const options = { center: defaultCenter, level: 5 };
+              const map = new window.kakao.maps.Map(container, options);
+              mapRef.current = map;
+
+              // 현재 위치 가져와서 지도 중심 이동
+              if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const currentPos = new window.kakao.maps.LatLng(latitude, longitude);
+                    map.setCenter(currentPos);
+
+                    // 현재 위치 마커 표시
+                    const marker = new window.kakao.maps.Marker({ map, position: currentPos });
+                    markersRef.current.push(marker);
+                    const infowindow = new window.kakao.maps.InfoWindow({
+                      content: `<div style="width:100px;text-align:center;padding:6px 0;">📍 내 위치</div>`
+                    });
+                    infowindow.open(map, marker);
+                  },
+                  () => {
+                    // 위치 권한 거부 시 기본 위치(서울 시청) 유지
+                  }
+                );
+              }
+            }
+          });
+        }}
+      />
       {/* Result Status Header */}
       <div className="bg-indigo-600 text-white p-6 rounded-2xl shadow-md flex items-center justify-between">
         <div>
@@ -312,16 +540,34 @@ function ResultView({ roomData }: { roomData: RoomData | null }) {
               <MapPin className="w-6 h-6 text-indigo-500"/> 중간지점 추천 장소
             </h3>
             <span className="text-sm font-medium bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
-              기준: {MOCK_RESULTS.meetingPoint.label}
+              기준: {meetingPoint.label}
             </span>
           </div>
 
           {/* Mock Map Visual */}
-          <div className="h-48 bg-slate-100 rounded-xl mb-4 flex flex-col items-center justify-center border border-slate-200 relative overflow-hidden">
-            <MapIcon className="w-12 h-12 text-slate-300 mb-2" />
+          <div className="w-full max-w-md mb-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="주소를 입력하세요"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyPress={(e) => e.key === 'Enter' && searchAddress()}
+              />
+              <button
+                onClick={searchAddress}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                검색
+              </button>
+            </div>
+          </div>
+          <div id ="map" className="h-48 bg-slate-100 rounded-xl mb-4 flex flex-col items-center justify-center border border-slate-200 relative overflow-hidden">            
+            {/* <MapIcon className="w-12 h-12 text-slate-300 mb-2" />
             <span className="text-slate-400 font-medium">카카오맵 SDK 영역</span>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-500/20 rounded-full animate-pulse"></div>
-            <MapPin className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-indigo-600" />
+            <MapPin className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-indigo-600" /> */}
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
