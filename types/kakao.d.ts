@@ -1,4 +1,4 @@
-// apps/web/src/types/kakao.d.ts
+// apps/web/src/types/kakao.ts
 
 interface KakaoMap {
   setCenter: (latlng: KakaoLatLng) => void;
@@ -31,8 +31,12 @@ interface KakaoGeocoderStatus {
 interface KakaoPlaces {
   keywordSearch: (
     keyword: string,
-    callback: (result: KakaoGeocoderResult[], status: string, pagination: unknown) => void,
-    options?: { category_group_code?: string }
+    callback: (
+      result: KakaoGeocoderResult[],
+      status: string,
+      pagination: unknown,
+    ) => void,
+    options?: { category_group_code?: string },
   ) => void;
 }
 
@@ -45,15 +49,21 @@ interface KakaoServices {
 interface KakaoGeocoder {
   addressSearch: (
     address: string,
-    callback: (result: KakaoGeocoderResult[], status: string) => void
+    callback: (result: KakaoGeocoderResult[], status: string) => void,
   ) => void;
 }
 
 interface KakaoMaps {
   load: (callback: () => void) => void;
   LatLng: new (lat: number, lng: number) => KakaoLatLng;
-  Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
-  Marker: new (options: { map?: KakaoMap; position: KakaoLatLng }) => KakaoMarker;
+  Map: new (
+    container: HTMLElement,
+    options: { center: KakaoLatLng; level: number },
+  ) => KakaoMap;
+  Marker: new (options: {
+    map?: KakaoMap;
+    position: KakaoLatLng;
+  }) => KakaoMarker;
   InfoWindow: new (options: { content: string }) => KakaoInfoWindow;
   services: KakaoServices;
 }
@@ -62,10 +72,6 @@ interface KakaoNamespace {
   maps: KakaoMaps;
 }
 
-declare global {
-  interface Window {
-    kakao: KakaoNamespace;
-  }
+interface Window {
+  kakao: KakaoNamespace;
 }
-
-export {};
