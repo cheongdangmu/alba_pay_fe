@@ -1,3 +1,5 @@
+'use client';
+
 // apps/web/src/app/room/join/page.tsx
 
 import JoinRoomView from '@/components/room/JoinRoomView';
