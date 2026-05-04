@@ -1,7 +1,5 @@
 // apps/web/src/app/page.tsx
-
-import PcLanding from '@/components/layout/PcLanding';
-import AppShell  from '@/components/layout/AppShell';
+import AppShell from '@/components/layout/AppShell';
 
 /**
  * 루트 페이지
@@ -11,11 +9,7 @@ import AppShell  from '@/components/layout/AppShell';
 export default function Page() {
   return (
     <>
-      {/* PC 전용 랜딩 (hidden md:flex) */}
-      <PcLanding />
-
-      {/* 모바일 전용 앱 (block md:hidden) */}
-      <div className="block md:hidden">
+      <div className="block">
         <AppShell />
       </div>
     </>

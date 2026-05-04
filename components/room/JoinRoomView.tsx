@@ -10,7 +10,7 @@ import {
   CalendarDays,
 } from 'lucide-react';
 
-interface RoomInfo {
+export interface RoomInfo {
   hostName: string;
   title: string;
   dateRange: string;
@@ -18,21 +18,31 @@ interface RoomInfo {
   participantCount: number;
   totalCount: number;
   candidateDays: string;
+  startDate: string;
+  endDate: string;
+  allowedDays: string[];
+  startHour: number;
+  endHour: number;
 }
 
 interface Props {
   roomInfo?: RoomInfo;
-  onJoin: (name: string) => void;
+  onJoin: (name: string, roomInfo: RoomInfo) => void;
 }
 
 const DEFAULT_ROOM: RoomInfo = {
   hostName: '수현',
   title: '5월 동아리 회의',
-  dateRange: '05.04 ~ 05.10',
+  dateRange: '05.01 ~ 05.31',
   deadline: '05.03 23:59',
   participantCount: 8,
   totalCount: 14,
-  candidateDays: '월·화·목 18~22시',
+  candidateDays: '월·수·금 6~21시',
+  startDate: '2026-05-01',
+  endDate: '2026-05-31',
+  allowedDays: ['월', '수', '금'],
+  startHour: 6,
+  endHour: 21,
 };
 
 export default function JoinRoomView({
@@ -41,7 +51,7 @@ export default function JoinRoomView({
 }: Props) {
   const [name, setName] = useState('');
 
-  const handleJoin = () => onJoin(name.trim());
+  const handleJoin = () => onJoin(name.trim(), roomInfo);
 
   const progress = Math.round(
     (roomInfo.participantCount / roomInfo.totalCount) * 100,

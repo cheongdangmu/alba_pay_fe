@@ -75,3 +75,9 @@ interface KakaoNamespace {
 interface Window {
   kakao: KakaoNamespace;
 }
+
+// 1. .env.local에서 키를 가져옵니다.
+export const KAKAO_MAP_CLIENT_KEY = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
+
+// 2. SDK 로드 URL을 생성합니다. autoload=false는 React에서 수동 초기화를 위해 필수입니다.
+export const KAKAO_MAP_SDK_URL = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_CLIENT_KEY}&autoload=false`;
