@@ -2,6 +2,7 @@
 // apps/web/src/components/room/ResultView.tsx
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Script from 'next/script';
 import {
   CheckCircle2,
   Clock,
@@ -11,7 +12,6 @@ import {
   Utensils,
   Users,
 } from 'lucide-react';
-import { loadKakaoSdk } from '@/lib/kakao';
 import { type RoomData, MOCK_RESULTS } from '@/types/room';
 
 interface Props {
@@ -28,7 +28,6 @@ export default function ResultView({ roomData }: Props) {
   const [meetingPoint] = useState(MOCK_RESULTS.meetingPoint);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
   const markersRef = useRef<KakaoMarker[]>([]);
 
@@ -82,7 +81,11 @@ export default function ResultView({ roomData }: Props) {
   }, [clearMarkers, meetingPoint, placeMarker]);
 
   const initMap = useCallback(() => {
-    if (!window.kakao?.maps || !mapContainerRef.current) return;
+    if (!window.kakao?.maps) return;
+
+    const container = document.getElementById('map');
+    if (!container) return;
+
     if (mapRef.current) {
       relayoutMap();
       renderMarkers();
@@ -91,23 +94,26 @@ export default function ResultView({ roomData }: Props) {
     }
 
     window.kakao.maps.load(() => {
-      if (!mapContainerRef.current) return;
+      const nextContainer = document.getElementById('map');
+      if (!nextContainer) return;
 
       const center = new window.kakao.maps.LatLng(
         meetingPoint.lat,
         meetingPoint.lng,
       );
-      const map = new window.kakao.maps.Map(mapContainerRef.current, {
+      const map = new window.kakao.maps.Map(nextContainer, {
         center,
         level: 5,
       });
 
       mapRef.current = map;
       setMapReady(true);
+
       requestAnimationFrame(() => {
         relayoutMap();
         renderMarkers();
       });
+
       window.setTimeout(() => {
         relayoutMap();
         renderMarkers();
@@ -116,31 +122,20 @@ export default function ResultView({ roomData }: Props) {
   }, [meetingPoint, renderMarkers]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    loadKakaoSdk()
-      .then(() => {
-        if (!cancelled) {
-          initMap();
-        }
-      })
-      .catch((error) => {
-        if (!cancelled) {
-          setMapError(
-            error instanceof Error
-              ? error.message
-              : '지도를 불러오지 못했습니다.',
-          );
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    if (window.kakao?.maps) {
+      initMap();
+    }
   }, [initMap]);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-3">
+      <Script
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=c92e2db2ad570ba196da9767ff6af5a7&autoload=false&libraries=services"
+        strategy="afterInteractive"
+        onLoad={initMap}
+        onError={() => setMapError('지도를 불러오지 못했습니다.')}
+      />
+
       <div className="bg-indigo-600 text-white p-4 rounded-2xl shadow-md flex items-center justify-between">
         <div>
           <span className="inline-block px-2 py-0.5 bg-white/20 text-white text-[10px] font-bold rounded-md mb-1">
@@ -224,7 +219,7 @@ export default function ResultView({ roomData }: Props) {
           </div>
 
           <div
-            ref={mapContainerRef}
+            id="map"
             className="h-64 bg-slate-100 rounded-xl mb-3 border border-slate-200 overflow-hidden flex items-center justify-center text-sm text-slate-500"
           >
             {!mapReady && (mapError ?? '지도를 불러오는 중입니다...')}

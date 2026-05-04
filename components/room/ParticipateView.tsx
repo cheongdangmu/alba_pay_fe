@@ -1,25 +1,36 @@
 'use client';
 // apps/web/src/features/room/components/ParticipateView.tsx
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ChevronRight, Clock, Info, Share2 } from 'lucide-react';
-import { HOURS, type RoomData } from '@/types/room';
+import { type RoomData } from '@/types/room';
 
 interface Props {
   roomData: RoomData | null;
   onSubmit: () => void;
 }
 
-function generateDates(startDate: string, endDate: string): string[] {
+function generateDates(
+  startDate: string,
+  endDate: string,
+  allowedDays?: string[],
+): string[] {
   const dates: string[] = [];
   const current = new Date(startDate);
   const end = new Date(endDate);
   const names = ['일', '월', '화', '수', '목', '금', '토'];
 
   while (current <= end) {
-    dates.push(
-      `${current.getMonth() + 1}/${current.getDate()}(${names[current.getDay()]})`,
-    );
+    const dayName = names[current.getDay()];
+    if (!allowedDays || allowedDays.includes(dayName)) {
+      dates.push(`${current.getMonth() + 1}/${current.getDate()}(${dayName})`);
+    }
     current.setDate(current.getDate() + 1);
   }
 
@@ -30,11 +41,26 @@ function isWeekend(date: string) {
   return date.endsWith('(토)') || date.endsWith('(일)');
 }
 
-const DATES = generateDates('2026-04-24', '2026-05-23');
 const COL_W = 44;
 const TIME_W = 40;
 
 export default function ParticipateView({ roomData, onSubmit }: Props) {
+  const dates = useMemo(
+    () =>
+      generateDates(
+        roomData?.startDate ?? '2026-05-01',
+        roomData?.endDate ?? '2026-05-31',
+        roomData?.allowedDays,
+      ),
+    [roomData?.startDate, roomData?.endDate, roomData?.allowedDays],
+  );
+
+  const hours = useMemo(() => {
+    const start = roomData?.startHour ?? 9;
+    const end = roomData?.endHour ?? 21;
+    return Array.from({ length: end - start + 1 }, (_, i) => i + start);
+  }, [roomData?.startHour, roomData?.endHour]);
+
   const [selectedBlocks, setSelectedBlocks] = useState(new Set<string>());
 
   const isDraggingRef = useRef(false);
@@ -43,13 +69,16 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
   const headerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const parseId = (id: string) => {
-    const parts = id.split('-');
-    const hour = parseInt(parts[parts.length - 1], 10);
-    const dateStr = parts.slice(0, parts.length - 1).join('-');
-    const dateIdx = DATES.indexOf(dateStr);
-    return { dateIdx, hour };
-  };
+  const parseId = useCallback(
+    (id: string) => {
+      const parts = id.split('-');
+      const hour = parseInt(parts[parts.length - 1], 10);
+      const dateStr = parts.slice(0, parts.length - 1).join('-');
+      const dateIdx = dates.indexOf(dateStr);
+      return { dateIdx, hour };
+    },
+    [dates],
+  );
 
   const toggle = (id: string, add: boolean) => {
     setSelectedBlocks((prev) => {
@@ -76,7 +105,7 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
       const next = new Set(prev);
       for (let di = minD; di <= maxD; di++) {
         for (let h = minH; h <= maxH; h++) {
-          const id = `${DATES[di]}-${h}`;
+          const id = `${dates[di]}-${h}`;
           if (dragModeRef.current) {
             next.add(id);
           } else {
@@ -110,6 +139,33 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
   const handleMouseUp = () => {
     isDraggingRef.current = false;
     lastCellRef.current = null;
+  };
+
+  const handleDateClick = (dateIdx: number) => {
+    const date = dates[dateIdx];
+    const allSelected = hours.every((h) => selectedBlocks.has(`${date}-${h}`));
+    setSelectedBlocks((prev) => {
+      const next = new Set(prev);
+      for (const h of hours) {
+        const id = `${date}-${h}`;
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleHourClick = (hour: number) => {
+    const allSelected = dates.every((d) => selectedBlocks.has(`${d}-${hour}`));
+    setSelectedBlocks((prev) => {
+      const next = new Set(prev);
+      for (const d of dates) {
+        const id = `${d}-${hour}`;
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
   };
 
   const syncScroll = (src: 'header' | 'grid', left: number) => {
@@ -168,7 +224,7 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
           const next = new Set(prev);
           for (let di = minD; di <= maxD; di++) {
             for (let h = minH; h <= maxH; h++) {
-              const fid = `${DATES[di]}-${h}`;
+              const fid = `${dates[di]}-${h}`;
               if (dragModeRef.current) {
                 next.add(fid);
               } else {
@@ -197,9 +253,9 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
       el.removeEventListener('touchmove', onMove);
       el.removeEventListener('touchend', onEnd);
     };
-  }, []);
+  }, [parseId, dates]);
 
-  const totalW = TIME_W + COL_W * DATES.length;
+  const totalW = TIME_W + COL_W * dates.length;
 
   return (
     <div
@@ -235,8 +291,7 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
 
         <div
           ref={headerRef}
-          className="overflow-x-auto border-b border-slate-100 bg-white"
-          style={{ scrollbarWidth: 'none' }}
+          className="overflow-x-hidden border-b border-slate-100 bg-white"
           onScroll={(e) => syncScroll('header', e.currentTarget.scrollLeft)}
         >
           <div style={{ width: totalW }} className="flex">
@@ -244,44 +299,56 @@ export default function ParticipateView({ roomData, onSubmit }: Props) {
               style={{ width: TIME_W, minWidth: TIME_W }}
               className="flex-shrink-0 border-r border-slate-100"
             />
-            {DATES.map((date) => (
-              <div
-                key={date}
-                style={{ width: COL_W, minWidth: COL_W }}
-                className={`flex-shrink-0 py-1.5 flex flex-col items-center gap-0.5 border-r border-slate-100 ${
-                  isWeekend(date)
-                    ? 'text-rose-400 bg-rose-50/40'
-                    : 'text-slate-500'
-                }`}
-              >
-                <span className="text-[10px] font-semibold leading-none">
-                  {date.split('(')[0]}
-                </span>
-                <span className="text-[9px] font-medium leading-none">
-                  {date.match(/\((.+)\)/)?.[1]}
-                </span>
-              </div>
-            ))}
+            {dates.map((date, di) => {
+              const colFull = hours.every((h) =>
+                selectedBlocks.has(`${date}-${h}`),
+              );
+              return (
+                <div
+                  key={date}
+                  style={{ width: COL_W, minWidth: COL_W }}
+                  onClick={() => handleDateClick(di)}
+                  className={`flex-shrink-0 py-1.5 flex flex-col items-center gap-0.5 border-r border-slate-100 cursor-pointer select-none transition-colors ${
+                    colFull
+                      ? 'bg-rose-400 text-white'
+                      : isWeekend(date)
+                        ? 'text-rose-400 bg-rose-50/40 hover:bg-rose-100'
+                        : 'text-slate-500 hover:bg-indigo-50'
+                  }`}
+                >
+                  <span className="text-[10px] font-semibold leading-none">
+                    {date.split('(')[0]}
+                  </span>
+                  <span className="text-[9px] font-medium leading-none">
+                    {date.match(/\((.+)\)/)?.[1]}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         <div
           ref={gridRef}
           className="overflow-x-auto"
-          style={{ scrollbarWidth: 'none' }}
           onScroll={(e) => syncScroll('grid', e.currentTarget.scrollLeft)}
         >
           <div style={{ width: totalW }}>
-            {HOURS.map((hour) => (
+            {hours.map((hour) => (
               <div key={hour} className="flex">
                 <div
                   style={{ width: TIME_W, minWidth: TIME_W }}
-                  className="flex-shrink-0 sticky left-0 z-10 bg-white text-right pr-2 text-[10px] text-slate-400 flex items-center justify-end border-r border-b border-slate-100"
+                  onClick={() => handleHourClick(hour)}
+                  className={`flex-shrink-0 sticky left-0 z-10 text-right pr-2 text-[10px] flex items-center justify-end border-r border-b cursor-pointer select-none transition-colors ${
+                    dates.every((d) => selectedBlocks.has(`${d}-${hour}`))
+                      ? 'bg-rose-400 text-white border-rose-300'
+                      : 'bg-white text-slate-400 border-slate-100 hover:bg-indigo-50'
+                  }`}
                 >
                   {hour}:00
                 </div>
 
-                {DATES.map((date) => {
+                {dates.map((date) => {
                   const id = `${date}-${hour}`;
                   const isSelected = selectedBlocks.has(id);
                   const weekend = isWeekend(date);

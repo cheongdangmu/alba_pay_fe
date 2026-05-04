@@ -5,6 +5,11 @@ export interface RoomData {
   title: string;
   collectLocation: boolean;
   departureLocation?: string;
+  startDate?: string; // "2026-05-01"
+  endDate?: string; // "2026-05-31"
+  allowedDays?: string[]; // ['월', '수', '금']
+  startHour?: number; // 6
+  endHour?: number; // 21
 }
 
 export interface TimeCandidate {
